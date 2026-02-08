@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Classy Scroll Demo</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      margin: 0;
+      padding: 0;
+      min-height: 200vh;
+    }
+    .spacer {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f0f0f0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    .box {
+      background: white;
+      padding: 2rem;
+      margin: 1rem 0;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .box.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .stagger-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+    .card {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      opacity: 0;
+      transform: scale(0.9);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .card.pop-in {
+      opacity: 1;
+      transform: scale(1);
+    }
+  </style>
+</head>
+<body>
+  <div class="spacer">
+    <h1>Scroll Down</h1>
+  </div>
+
+  <div class="container">
+    <div class="box js-scroll">Item 1</div>
+    <div class="box js-scroll">Item 2</div>
+    <div class="box js-scroll" data-swc-delay="200">Item 3 (Delay 200ms)</div>
+    
+    <div class="stagger-grid">
+      <div class="card js-stagger">Card 1</div>
+      <div class="card js-stagger">Card 2</div>
+      <div class="card js-stagger">Card 3</div>
+      <div class="card js-stagger">Card 4</div>
+      <div class="card js-stagger">Card 5</div>
+      <div class="card js-stagger">Card 6</div>
+    </div>
+  </div>
+
+  <div class="spacer">
+    <p>End of content</p>
+  </div>
+
+  <script type="module">
+    import { classyScroll } from './src/index.ts';
+
+    // Basic usage
+    classyScroll('.js-scroll', {
+      class: 'visible',
+      threshold: 0.2,
+      debug: true
+    });
+
+    // Staggered grid
+    classyScroll('.js-stagger', {
+      class: 'pop-in',
+      threshold: 0.1,
+      stagger: 100,
+      once: true
+    });
+  </script>
+</body>
+</html>
