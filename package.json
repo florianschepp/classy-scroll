@@ -6,11 +6,19 @@
     "main": "./dist/classy-scroll.umd.cjs",
     "module": "./dist/classy-scroll.js",
     "types": "./dist/index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/florianschepp/classy-scroll.git"
+    },
+    "bugs": {
+        "url": "https://github.com/florianschepp/classy-scroll/issues"
+    },
+    "homepage": "https://github.com/florianschepp/classy-scroll#readme",
     "exports": {
         ".": {
+            "types": "./dist/index.d.ts",
             "import": "./dist/classy-scroll.js",
-            "require": "./dist/classy-scroll.umd.cjs",
-            "types": "./dist/index.d.ts"
+            "require": "./dist/classy-scroll.umd.cjs"
         }
     },
     "files": [
