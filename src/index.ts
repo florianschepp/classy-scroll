@@ -1,24 +1,32 @@
 export interface classyScrollOptions {
-	/** Space-separated classes to add when element is in view */
+	/** Space-separated classes to add when element is in view. Default: 'is-visible' */
 	class?: string;
 	/** Visibility threshold (0.0 to 1.0). Default: 0.1 */
 	threshold?: number | number[];
-	/** Margin around the root element. Default: '0px' */
+	/** Margin around the root element (e.g. "10px 0px"). Default: '0px' */
 	rootMargin?: string;
-	/** If true, only trigger once. Default: false */
+	/** If true, the class is added once and never removed. Default: false */
 	once?: boolean;
 	/** Delay in ms between elements in the same batch. Default: 0 */
 	stagger?: number;
 	/** Global delay in ms before animation starts. Default: 0 */
 	delay?: number;
-	/** Enable debug overlay. Default: false */
+	/** Enable debug overlay to visualize trigger zones. Default: false */
 	debug?: boolean;
-	/** Callback when element intersects */
+	/** Callback fired when element intersects. */
 	callback?: (element: HTMLElement) => void;
 }
 
+export type ClassyTargets = string | Element | ArrayLike<Element> | null | undefined;
+
+/**
+ * Initializes a high-performance scroll observer.
+ * @param targetInput - A CSS selector string, HTMLElement, NodeList, or Array of elements.
+ * @param options - Configuration options.
+ * @returns An object containing a `destroy()` method to clean up observers.
+ */
 export function classyScroll(
-	elements: string | NodeListOf<HTMLElement> | HTMLElement[] | HTMLElement,
+	targetInput: ClassyTargets,
 	options: classyScrollOptions = {},
 ): { destroy: () => void } {
 	const {
@@ -32,115 +40,211 @@ export function classyScroll(
 		callback,
 	} = options;
 
-	const elList = typeof elements === 'string'
-		? document.querySelectorAll(elements)
-		: (elements instanceof HTMLElement ? [elements] : elements);
-  
-	const targets = Array.from(elList) as HTMLElement[];
-	if (targets.length === 0) return { destroy: () => {} };
+	const trackedElements = new WeakSet<HTMLElement>();
+	const globalDebugElements: HTMLElement[] = [];
 
 	const queue: HTMLElement[] = [];
 	let isProcessing = false;
 	const timeouts = new WeakMap<HTMLElement, number>();
-
 	const isReduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-	const applyClass = (el: HTMLElement) => {
-		const elClass = el.dataset.swcClass || className;
-		const elDelay = parseInt(el.dataset.swcDelay || '0', 10) || delay;
-    
+	const applyClass = (element: HTMLElement) => {
+		const elementClass = element.dataset.csClass || className;
+		const elementDelay = parseInt(element.dataset.csDelay || '0', 10) || delay;
 		const doApply = () => {
-			el.classList.add(...elClass.split(' '));
-			if (callback) callback(el);
+			element.classList.add(...elementClass.split(' '));
+			if (callback) callback(element);
 		};
-
-		if (elDelay > 0 && !isReduced()) {
-			const id = window.setTimeout(doApply, elDelay);
-			timeouts.set(el, id);
+		if (elementDelay > 0 && !isReduced()) {
+			const id = window.setTimeout(doApply, elementDelay);
+			timeouts.set(element, id);
 		} else {
-			// console.log('applyClass immediate', el);
 			doApply();
 		}
 	};
 
 	const processQueue = () => {
-		// console.log('Processing queue, length:', queue.length);
 		isProcessing = true;
-		const el = queue.shift() as HTMLElement;
-		applyClass(el);
-
+		const element = queue.shift() as HTMLElement;
+		applyClass(element);
 		const wait = isReduced() ? 0 : stagger;
-    
 		if (queue.length > 0) {
 			setTimeout(processQueue, wait);
 		} else {
-			// Wait to see if more elements are added (batching)
-			setTimeout(() => { 
-				if (queue.length > 0) processQueue(); 
-				else isProcessing = false; 
+			setTimeout(() => {
+				if (queue.length > 0) processQueue();
+				else isProcessing = false;
 			}, wait);
 		}
 	};
 
 	const observer = new IntersectionObserver((entries) => {
 		entries.forEach(entry => {
-			// console.log('IntersectionObserver callback', entry.isIntersecting, entry.target);
-			const el = entry.target as HTMLElement;
-      
+			const element = entry.target as HTMLElement;
 			if (entry.isIntersecting) {
-				if (once) observer.unobserve(el);
-        
+				if (once) observer.unobserve(element);
 				if (stagger > 0 && !isReduced()) {
-					if (!queue.includes(el) && !el.classList.contains(className.split(' ')[0])) {
-						// console.log('Pushing to queue', el);
-						queue.push(el);
+					if (!queue.includes(element) && !element.classList.contains(className.split(' ')[0])) {
+						queue.push(element);
 						if (!isProcessing) processQueue();
 					}
 				} else {
-					applyClass(el);
+					applyClass(element);
 				}
 			} else {
 				if (!once) {
-					const qIdx = queue.indexOf(el);
-					if (qIdx > -1) queue.splice(qIdx, 1);
-          
-					const tid = timeouts.get(el);
-					if (tid) {
-						clearTimeout(tid);
-						timeouts.delete(el);
+					const elementIndexInQueue = queue.indexOf(element);
+					if (elementIndexInQueue > -1) queue.splice(elementIndexInQueue, 1);
+					const timeoutId = timeouts.get(element);
+					if (timeoutId) {
+						clearTimeout(timeoutId);
+						timeouts.delete(element);
 					}
-
-					const elClass = el.dataset.swcClass || className;
-					el.classList.remove(...elClass.split(' '));
+					const elementClass = element.dataset.csClass || className;
+					element.classList.remove(...elementClass.split(' '));
 				}
 			}
 		});
 	}, { threshold, rootMargin });
 
-	targets.forEach(el => observer.observe(el));
+	const addElementDebug = (element: HTMLElement) => {
+		if (getComputedStyle(element).position === 'static') {
+			element.style.position = 'relative';
+		}
 
-	let debugEl: HTMLElement | null = null;
-	if (debug) {
-		console.log('[classyScroll] Initialized', { elements: targets.length, options });
-		debugEl = document.createElement('div');
-		Object.assign(debugEl.style, {
-			position: 'fixed',
-			top: '50%',
-			left: '0',
-			width: '100%',
-			height: '0',
-			borderTop: '2px dashed red',
-			zIndex: 9999,
-			pointerEvents: 'none',
+		const createMarker = (isBottom: boolean) => {
+			const marker = document.createElement('div');
+			Object.assign(marker.style, {
+				position: 'absolute',
+				[isBottom ? 'bottom' : 'top']: '0',
+				left: '50%',
+				width: '100vw',
+				height: '0px',
+				transform: 'translateX(-50%)',
+				zIndex: '9998',
+				pointerEvents: 'none',
+			});
+
+			const dash = document.createElement('div');
+			Object.assign(dash.style, {
+				position: 'absolute',
+				right: '0',
+				[isBottom ? 'bottom' : 'top']: '0',
+				width: '50px',
+				height: '0px',
+				[isBottom ? 'borderBottom' : 'borderTop']: '2px solid blue',
+			});
+
+			const label = document.createElement('span');
+			label.textContent = isBottom ? 'Bot' : 'Top';
+			Object.assign(label.style, {
+				position: 'absolute',
+				right: '52px',
+				[isBottom ? 'bottom' : 'top']: '-6px',
+				color: 'blue',
+				fontSize: '9px',
+				fontWeight: 'bold',
+			});
+
+			marker.appendChild(dash);
+			marker.appendChild(label);
+			marker.dataset.csDebug = 'true';
+			element.appendChild(marker);
+		};
+
+		createMarker(false);
+		createMarker(true);
+	};
+
+	const register = (element: HTMLElement) => {
+		if (trackedElements.has(element)) return;
+		trackedElements.add(element);
+		observer.observe(element);
+		if (debug) addElementDebug(element);
+	};
+
+	if (typeof targetInput === 'string') {
+		const found = document.querySelectorAll(targetInput);
+		found.forEach(element => register(element as HTMLElement));
+	} else if (targetInput instanceof Element) {
+		register(targetInput as HTMLElement);
+	} else if (targetInput && (targetInput as ArrayLike<Element>).length) {
+		Array.from(targetInput as ArrayLike<Element>).forEach(element => register(element as HTMLElement));
+	}
+
+	let mutationObserver: MutationObserver | null = null;
+	if (typeof targetInput === 'string') {
+		mutationObserver = new MutationObserver((mutations) => {
+			mutations.forEach((mutation) => {
+				if (mutation.type === 'childList') {
+					mutation.addedNodes.forEach((node) => {
+						if (node instanceof HTMLElement) {
+							if (node.matches(targetInput)) {
+								register(node);
+							}
+							const nested = node.querySelectorAll(targetInput);
+							nested.forEach((element) => register(element as HTMLElement));
+						}
+					});
+				}
+			});
 		});
-		debugEl.textContent = 'Trigger Line (approx)';
-		document.body.appendChild(debugEl);
+		mutationObserver.observe(document.body, { childList: true, subtree: true });
+	}
+
+	if (debug) {
+		const parts = rootMargin.split(' ').map(part => part.trim());
+		let marginTop = '0px';
+		let marginBottom = '0px';
+
+		if (parts.length === 1) { marginTop = parts[0]; marginBottom = parts[0]; }
+		else if (parts.length === 2) { marginTop = parts[0]; marginBottom = parts[0]; }
+		else if (parts.length === 3) { marginTop = parts[0]; marginBottom = parts[2]; }
+		else if (parts.length === 4) { marginTop = parts[0]; marginBottom = parts[2]; }
+
+		const createZone = (isBottom: boolean, margin: string, color: string) => {
+			const zone = document.createElement('div');
+			Object.assign(zone.style, {
+				position: 'fixed',
+				[isBottom ? 'bottom' : 'top']: margin.startsWith('-') ? Math.abs(parseFloat(margin)) + (margin.includes('%') ? '%' : 'px') : margin,
+				right: '0',
+				width: '100%',
+				height: '0px',
+				[isBottom ? 'borderBottom' : 'borderTop']: `2px dashed ${color}`,
+				zIndex: '9999',
+				pointerEvents: 'none',
+			});
+
+			const label = document.createElement('span');
+			label.textContent = `Trigger Zone ${isBottom ? 'Bottom' : 'Top'} (${margin})`;
+			Object.assign(label.style, {
+				position: 'absolute',
+				[isBottom ? 'bottom' : 'top']: '2px',
+				right: '0',
+				background: color,
+				color: 'white',
+				fontSize: '10px',
+				padding: '2px 4px',
+			});
+
+			zone.appendChild(label);
+			document.body.appendChild(zone);
+			globalDebugElements.push(zone);
+		};
+
+		createZone(false, marginTop, 'red');
+		createZone(true, marginBottom, 'green');
 	}
 
 	return {
 		destroy: () => {
 			observer.disconnect();
-			if (debugEl) debugEl.remove();
+			if (mutationObserver) mutationObserver.disconnect();
+			globalDebugElements.forEach(element => element.remove());
+			if (debug) {
+				// We cannot iterate trackedElements (WeakSet), so we query the DOM for cleanup
+				document.querySelectorAll('[data-cs-debug="true"]').forEach(el => el.remove());
+			}
 			queue.length = 0;
 		},
 	};
