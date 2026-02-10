@@ -1,22 +1,20 @@
 import { vi } from 'vitest';
 
-// Mock matchMedia
 Object.defineProperty(window, 'matchMedia', {
 	writable: true,
 	value: vi.fn().mockImplementation(query => ({
 		matches: false,
 		media: query,
 		onchange: null,
-		addListener: vi.fn(), // deprecated
-		removeListener: vi.fn(), // deprecated
+		addListener: vi.fn(),
+		removeListener: vi.fn(),
 		addEventListener: vi.fn(),
 		removeEventListener: vi.fn(),
 		dispatchEvent: vi.fn(),
 	})),
 });
 
-// Mock IntersectionObserver
-export const observers = new Map<Element, { callback: IntersectionObserverCallback, observer: IntersectionObserver }>();
+export const intersectionObservers = new Map<Element, { callback: IntersectionObserverCallback, observer: IntersectionObserver }>();
 
 export class IntersectionObserverMock {
 	callback: IntersectionObserverCallback;
@@ -32,19 +30,17 @@ export class IntersectionObserverMock {
 	thresholds = this.options?.threshold ? (Array.isArray(this.options.threshold) ? this.options.threshold : [this.options.threshold]) : [];
 
 	observe = vi.fn((element: Element) => {
-		// console.log('Mock observe', element);
-		observers.set(element, { callback: this.callback, observer: this as unknown as IntersectionObserver });
+		intersectionObservers.set(element, { callback: this.callback, observer: this as unknown as IntersectionObserver });
 	});
 
 	unobserve = vi.fn((element: Element) => {
-		observers.delete(element);
+		intersectionObservers.delete(element);
 	});
 
 	disconnect = vi.fn(() => {
-		// Inefficient but works for simple mock
-		for (const [el, data] of observers.entries()) {
+		for (const [element, data] of intersectionObservers.entries()) {
 			if (data.observer === (this as unknown as IntersectionObserver)) {
-				observers.delete(el);
+				intersectionObservers.delete(element);
 			}
 		}
 	});
@@ -54,9 +50,31 @@ export class IntersectionObserverMock {
 
 vi.stubGlobal('IntersectionObserver', IntersectionObserverMock);
 
-// Helper to trigger intersection
+export const mutationObservers = new Set<MutationObserverMock>();
+
+export class MutationObserverMock {
+	callback: MutationCallback;
+
+	constructor(callback: MutationCallback) {
+		this.callback = callback;
+		mutationObservers.add(this);
+	}
+
+	observe = vi.fn();
+	disconnect = vi.fn(() => {
+		mutationObservers.delete(this);
+	});
+	takeRecords = vi.fn(() => []);
+
+	trigger(records: MutationRecord[]) {
+		this.callback(records, this as unknown as MutationObserver);
+	}
+}
+
+vi.stubGlobal('MutationObserver', MutationObserverMock);
+
 export function triggerIntersect(element: Element, isIntersecting: boolean) {
-	const data = observers.get(element);
+	const data = intersectionObservers.get(element);
 	if (data) {
 		const entry: IntersectionObserverEntry = {
 			target: element,
@@ -69,11 +87,30 @@ export function triggerIntersect(element: Element, isIntersecting: boolean) {
 			rootBounds: null,
 			time: Date.now(),
 		};
-		// Wrap in act if using React testing library, but here we are vanilla
 		data.callback([entry], data.observer);
 	}
 }
 
+export function triggerMutation(addedNodes: Node[], target: Node = document.body) {
+	const records: MutationRecord[] = [{
+		type: 'childList',
+		target,
+		addedNodes: {
+			length: addedNodes.length,
+			item: (index: number) => addedNodes[index],
+			forEach: (callback: (node: Node, index: number, parent: NodeList) => void) => addedNodes.forEach(callback),
+		} as NodeList,
+		removedNodes: [] as unknown as NodeList,
+		previousSibling: null,
+		nextSibling: null,
+		attributeName: null,
+		attributeNamespace: null,
+		oldValue: null,
+	}];
+
+	mutationObservers.forEach(observer => observer.trigger(records));
+}
+
 export function getObserver(element: Element) {
-	return observers.get(element)?.observer;
+	return intersectionObservers.get(element)?.observer;
 }
