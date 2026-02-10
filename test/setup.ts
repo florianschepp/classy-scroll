@@ -98,7 +98,21 @@ export function triggerMutation(addedNodes: Node[], target: Node = document.body
 		addedNodes: {
 			length: addedNodes.length,
 			item: (index: number) => addedNodes[index],
-			forEach: (callback: (node: Node, index: number, parent: NodeList) => void) => addedNodes.forEach(callback),
+			forEach: (
+                callback: (
+                    node: Node, 
+                    index: number, 
+                    parent: NodeList
+                ) => void
+            ) => {
+                addedNodes.forEach(
+                    (node, index) => callback(
+                        node,
+                        index,
+                        addedNodes as unknown as NodeList
+                    )
+                );
+            },
 		} as NodeList,
 		removedNodes: [] as unknown as NodeList,
 		previousSibling: null,
