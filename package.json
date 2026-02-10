@@ -20,6 +20,8 @@
         "dev": "vite",
         "build": "tsc && vite build",
         "test": "vitest",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
         "prepublishOnly": "pnpm run test && pnpm run build"
     },
     "devDependencies": {
