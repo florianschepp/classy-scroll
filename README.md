@@ -1,94 +1,217 @@
-# Classy Scroll 🎩✨
+# **Classy Scroll 🎩✨**
 
-A lightweight, performance-first library for scroll-based class toggling. Built with `IntersectionObserver` and TypeScript.
+A lightweight, **performance-first** library for scroll-based class toggling. Built with IntersectionObserver and TypeScript.
 
-## Why Another Scroll Library?
+## **💡 The Philosophy**
 
-Most scroll libraries (AOS, ScrollMagic, etc.) are powerful but often bloated, rely on scroll event listeners (causing layout thrashing), or require heavy configuration.
+We believe in **Separation of Concerns**.
 
-**Classy Scroll is different:**
+* **JavaScript** handles the *trigger* (when to start).  
+* **CSS** handles the *animation* (what happens).
 
-- **🚀 Performance First:** Uses `IntersectionObserver` natively. No scroll event listeners. No jank.
-- **📦 Zero Dependencies:** Tiny footprint (< 1kb minified).
-- **♿ Accessibility Built-in:** Automatically disables animations if the user has `prefers-reduced-motion` enabled.
-- **🎨 Stagger Support:** Easily stagger animations for grids or lists without complex CSS delays.
-- **💪 TypeScript:** Fully typed for excellent DX.
+This library does not include physics engines, timelines, or parallax math. It does one thing efficiently: **it toggles a class when an element enters the viewport.**
 
-## Installation
+### **When to use Classy Scroll?**
 
+| If you need... | Use... |
+| :---- | :---- |
+| **Complex Timelines** (Pinning, Scrubbing, Parallax) | **GSAP ScrollTrigger** (The industry standard) |
+| **React-Specific Physics** (Springs, Gestures) | **Framer Motion** |
+| **Pre-made Animations** (Standard fades/slides) | **AOS** (Great if you skip writing CSS) |
+| **Total Creative Freedom** (Any CSS class toggle) | **Classy Scroll** 🎩 |
+
+**Classy Scroll is designed for the 90% use case:** You want to trigger CSS transitions as you scroll, and you want it to be fast, accessible, and lightweight.
+
+**Future-Proof Architecture:** By strictly delegating animation logic to CSS, this library is inherently forward-compatible. As browsers adopt new CSS features (like discrete property transitions), your animations gain those powers immediately without needing library updates.
+
+## **📦 Installation**
 ```bash
-npm install classy-scroll
-# or
-yarn add classy-scroll
+npm install classy-scroll  
+# or  
+pnpm add classy-scroll
 ```
+## **🛠 Usage & Recipes**
 
-## Usage
+### **1\. The "Minimal" Way (Vanilla CSS)**
 
-### Basic
-
-Add `data-swc-class` to your HTML elements (optional) or configure globally.
-
+By default, the library toggles the class is-visible. You define your start state in CSS, and your end state using the toggled class.
 ```html
-<div class="box js-scroll">I fade in!</div>
-<div class="box js-scroll" data-swc-delay="200">I fade in late!</div>
-```
+<!-- 1. The HTML -->  
+<div class="hero-text animated-element">Hello World</div>
 
+<!-- 2. The CSS -->  
+<style>  
+  /* Start State (Hidden) */  
+  .hero-text {  
+    opacity: 0;  
+    transform: translateY(20px);  
+    transition: opacity 0.6s, transform 0.6s;  
+  }
+
+  /* End State (Added by library) */  
+  .hero-text.is-visible {  
+    opacity: 1;  
+    transform: translateY(0);  
+  }  
+</style>
+
+<!-- 3. The JS -->  
+<script type="module">  
+  import { classyScroll } from 'classy-scroll';  
+    
+  // Just pass the selector!  
+  classyScroll('.animated-element');  
+</script>
+```
+### **2\. With Tailwind CSS 🌊**
+
+Classy Scroll works perfectly with utility classes. You set the "Start" utility classes in your HTML, and pass the "End" utility classes to the library.
+```html
+<!-- 1. HTML (Start State: opacity-0, translate-y-8) -->  
+<div class="opacity-0 translate-y-8 transition-all duration-700 animated-element">  
+  I fade in with Tailwind!  
+</div>
+
+<!-- 2. JS -->  
+<script type="module">  
+  import { classyScroll } from 'classy-scroll';
+
+  classyScroll('.animated-element', {  
+    // Pass the Tailwind utilities to add when visible  
+    class: 'opacity-100 translate-y-0',   
+    threshold: 0.5  
+  });  
+</script>
+```
+### **3\. Full Configuration**
+
+For TypeScript users, here is the complete interface definition showing all available options and their types.
+```typescript
+export interface classyScrollOptions {  
+  /** Space-separated classes to add when element is in view. Default: 'is-visible' */  
+  class?: string;  
+  /** Visibility threshold (0.0 to 1.0). Default: 0.1 */  
+  threshold?: number | number[];  
+  /** Margin around the root element (e.g. "10px 0px"). Default: '0px' */  
+  rootMargin?: string;  
+  /** If true, the class is added once and never removed. Default: false */  
+  once?: boolean;  
+  /** Delay in ms between elements in the same batch. Default: 0 */  
+  stagger?: number;  
+  /** Global delay in ms before animation starts. Default: 0 */  
+  delay?: number;  
+  /** Enable debug overlay to visualize trigger zones. Default: false */  
+  debug?: boolean;  
+  /** Callback fired when element intersects. */  
+  callback?: (element: HTMLElement) => void;  
+}
+```
+#### **Example Instantiation:**
 ```typescript
 import { classyScroll } from 'classy-scroll';
 
-// Initialize
-const observer = classyScroll('.js-scroll', {
-  class: 'is-visible', // Class to toggle
-  threshold: 0.2,      // Trigger when 20% visible
-  once: true           // Only trigger once (default: true)
-});
-
-// Cleanup when done (e.g., in React useEffect)
-// observer.destroy();
-```
-
-### Staggered Grid
-
-Perfect for cards or list items.
-
-```typescript
-classyScroll('.card', {
-  class: 'pop-in',
-  stagger: 100 // 100ms delay between each element in the batch
+classyScroll('.animated-element', {  
+  class: 'my-active-class',  
+  threshold: 0.5,   
+  rootMargin: '-50px 0px',   
+  once: true,  
+  stagger: 100,  
+  debug: true,  
+  callback: (element) => console.log('Animated:', element)  
 });
 ```
+## **⚙️ API**
 
-## API
-
-### `classyScroll(elements, options)`
+### **classyScroll(targets, options)**
 
 **Arguments:**
 
-- `elements`: `string` (selector), `NodeList`, `HTMLElement[]`, or single `HTMLElement`.
-- `options`: Configuration object.
+* targets: string (selector), NodeList, HTMLElement[], or single HTMLElement.  
+  * *Note: If you pass a selector string (e.g. ".card"), the library will automatically enable **MutationObserver** to watch for new elements matching that selector.*  
+* options: Configuration object (optional).
 
-**Options:**
+### **HTML Data Attributes**
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `class` | `string` | `'is-visible'` | CSS class to add when intersecting. |
-| `threshold` | `number` | `0.1` | Intersection threshold (0.0 - 1.0). |
-| `rootMargin` | `string` | `'0px'` | Margin around the root (viewport). |
-| `once` | `boolean` | `true` | If `true`, stops observing after first trigger. |
-| `stagger` | `number` | `0` | Delay in ms between processing batched elements. |
-| `delay` | `number` | `0` | Global delay before adding class. |
-| `debug` | `boolean` | `false` | Visualizes the intersection threshold on screen. |
-| `callback` | `function` | `undefined` | Callback `(el) => void` when triggered. |
+You can override global settings on a per-element basis.
+```html
+<div
+  class="box"   
+  data-cs-delay="500"   
+  data-cs-class="special-pop"
+>  
+  I wait 500ms and get a custom class  
+</div>
+```
 
-**HTML Attributes:**
+## **🕵️ Debug Mode**
 
-- `data-swc-delay`: Overrides global `delay` for specific element.
-- `data-swc-class`: Overrides global `class` for specific element.
+Debugging scroll interactions is usually painful. Enable debug: true to visualize exactly where your trigger zones are.
+```typescript
+classyScroll('.box', {  
+  debug: true,  
+  rootMargin: '-20% 0px' // Trigger line moves 20% up from bottom  
+});
+```
+* **Green Line:** Start Trigger (Bottom).  
+* **Red Line:** End Trigger (Top).  
+* **Blue Markers:** Top/Bottom boundaries of your elements.
 
-## Browser Support
+## **🧩 Framework Examples**
 
-Works in all modern browsers supporting `IntersectionObserver` (96%+ global support).
+### **React / Next.js (Dynamic Content)**
 
-## License
+Because classyScroll uses a MutationObserver when you pass a string selector, it automatically detects new elements added to the DOM (e.g., loading a list).
+```tsx
+import { useState, useEffect } from 'react';  
+import { classyScroll } from 'classy-scroll';
 
-MIT
+export const DynamicList = () => {  
+  const [items, setItems] = useState([1, 2, 3]);
+
+  useEffect(() => {  
+    // We pass a string selector, so it watches for new .animated-element nodes automatically  
+    const { destroy } = classyScroll('.animated-element', {   
+        stagger: 100,  
+        once: true   
+    });  
+    return () => destroy();  
+  }, []);
+
+  return (  
+    <div>  
+      <button onClick={() => setItems([...items, items.length + 1])}>  
+        Add Item  
+      </button>  
+        
+      {items.map(i => (  
+        // This new item will animate automatically when added!  
+        <div key={i} className="animated-element">  
+          Item {i}  
+        </div>  
+      ))}  
+    </div>  
+  );  
+};
+```
+### **Vue / Nuxt**
+
+Works great with onMounted.
+```vue
+<script setup>  
+import { onMounted, onUnmounted } from 'vue';  
+import { classyScroll } from 'classy-scroll';
+
+let scroller;
+
+onMounted(() => {  
+  scroller = classyScroll('.animated-element', { stagger: 50 });  
+});
+
+onUnmounted(() => {  
+  scroller?.destroy();  
+});  
+</script>
+```
+## **License**
+
+MIT © 2026
