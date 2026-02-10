@@ -1,16 +1,30 @@
 export interface classyScrollOptions {
+    /** Space-separated classes to add when element is in view. Default: 'is-visible' */
     class?: string;
+    /** Visibility threshold (0.0 to 1.0). Default: 0.1 */
     threshold?: number | number[];
+    /** Margin around the root element (e.g. "10px 0px"). Default: '0px' */
     rootMargin?: string;
+    /** If true, the class is added once and never removed. Default: false */
     once?: boolean;
+    /** Delay in ms between elements in the same batch. Default: 0 */
     stagger?: number;
+    /** Global delay in ms before animation starts. Default: 0 */
     delay?: number;
+    /** Enable debug overlay to visualize trigger zones. Default: false */
     debug?: boolean;
+    /** Callback fired when element intersects. */
     callback?: (element: HTMLElement) => void;
 }
 
 export type ClassyTargets = string | Element | ArrayLike<Element> | null | undefined;
 
+/**
+ * Initializes a high-performance scroll observer.
+ * @param targetInput - A CSS selector string, HTMLElement, NodeList, or Array of elements.
+ * @param options - Configuration options.
+ * @returns An object containing a `destroy()` method to clean up observers.
+ */
 export function classyScroll(
     targetInput: ClassyTargets,
     options: classyScrollOptions = {},
@@ -151,11 +165,11 @@ export function classyScroll(
 
     if (typeof targetInput === 'string') {
         const found = document.querySelectorAll(targetInput);
-        found.forEach(el => register(el as HTMLElement));
+        found.forEach(element => register(element as HTMLElement));
     } else if (targetInput instanceof Element) {
         register(targetInput as HTMLElement);
     } else if (targetInput && (targetInput as ArrayLike<Element>).length) {
-        Array.from(targetInput as ArrayLike<Element>).forEach(el => register(el as HTMLElement));
+        Array.from(targetInput as ArrayLike<Element>).forEach(element => register(element as HTMLElement));
     }
 
     let mutationObserver: MutationObserver | null = null;
@@ -169,7 +183,7 @@ export function classyScroll(
                                 register(node);
                             }
                             const nested = node.querySelectorAll(targetInput);
-                            nested.forEach((el) => register(el as HTMLElement));
+                            nested.forEach((element) => register(element as HTMLElement));
                         }
                     });
                 }
@@ -179,7 +193,7 @@ export function classyScroll(
     }
 
     if (debug) {
-        const parts = rootMargin.split(' ').map(p => p.trim());
+        const parts = rootMargin.split(' ').map(part => part.trim());
         let marginTop = '0px';
         let marginBottom = '0px';
 

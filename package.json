@@ -1,6 +1,7 @@
 {
     "name": "classy-scroll",
     "version": "0.0.0",
+    "packageManager": "pnpm@10.25.0",
     "type": "module",
     "main": "./dist/classy-scroll.umd.cjs",
     "module": "./dist/classy-scroll.js",
