@@ -37,19 +37,19 @@ pnpm add classy-scroll
 By default, the library toggles the class is-visible. You define your start state in CSS, and your end state using the toggled class.
 ```html
 <!-- 1. The HTML -->  
-<div class="hero-text animated-element">Hello World</div>
+<div class="animated-element">Hello World</div>
 
 <!-- 2. The CSS -->  
 <style>  
   /* Start State (Hidden) */  
-  .hero-text {  
+  .animated-element {  
     opacity: 0;  
     transform: translateY(20px);  
     transition: opacity 0.6s, transform 0.6s;  
   }
 
   /* End State (Added by library) */  
-  .hero-text.is-visible {  
+  .animated-element.is-visible {  
     opacity: 1;  
     transform: translateY(0);  
   }  
