@@ -36,10 +36,8 @@ pnpm add classy-scroll
 
 By default, the library toggles the class is-visible. You define your start state in CSS, and your end state using the toggled class.
 ```html
-<!-- 1. The HTML -->  
 <div class="animated-element">Hello World</div>
-
-<!-- 2. The CSS -->  
+ 
 <style>  
   /* Start State (Hidden) */  
   .animated-element {  
@@ -55,8 +53,7 @@ By default, the library toggles the class is-visible. You define your start stat
   }  
 </style>
 
-<!-- 3. The JS -->  
-<script type="module">  
+<script>  
   import { classyScroll } from 'classy-scroll';  
     
   // Just pass the selector!  
