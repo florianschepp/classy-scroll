@@ -64,13 +64,11 @@ By default, the library toggles the class is-visible. You define your start stat
 
 Classy Scroll works perfectly with utility classes. You set the "Start" utility classes in your HTML, and pass the "End" utility classes to the library.
 ```html
-<!-- 1. HTML (Start State: opacity-0, translate-y-8) -->  
 <div class="opacity-0 translate-y-8 transition-all duration-700 animated-element">  
   I fade in with Tailwind!  
 </div>
 
-<!-- 2. JS -->  
-<script type="module">  
+<script>  
   import { classyScroll } from 'classy-scroll';
 
   classyScroll('.animated-element', {  
