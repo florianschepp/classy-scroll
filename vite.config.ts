@@ -29,7 +29,8 @@ export default defineConfig({
 	},
 	plugins: [
 		// 6. Generate type definitions (.d.ts files)
-		dts({ 
+		dts({
+            exclude: ['**/*.test.ts', 'test/**'],
 			insertTypesEntry: true,
 			tsconfigPath: './tsconfig.json', 
 		}),
