@@ -36,27 +36,24 @@ pnpm add classy-scroll
 
 By default, the library toggles the class is-visible. You define your start state in CSS, and your end state using the toggled class.
 ```html
-<!-- 1. The HTML -->  
-<div class="hero-text animated-element">Hello World</div>
-
-<!-- 2. The CSS -->  
+<div class="animated-element">Hello World</div>
+ 
 <style>  
   /* Start State (Hidden) */  
-  .hero-text {  
+  .animated-element {  
     opacity: 0;  
     transform: translateY(20px);  
     transition: opacity 0.6s, transform 0.6s;  
   }
 
   /* End State (Added by library) */  
-  .hero-text.is-visible {  
+  .animated-element.is-visible {  
     opacity: 1;  
     transform: translateY(0);  
   }  
 </style>
 
-<!-- 3. The JS -->  
-<script type="module">  
+<script>  
   import { classyScroll } from 'classy-scroll';  
     
   // Just pass the selector!  
@@ -67,13 +64,11 @@ By default, the library toggles the class is-visible. You define your start stat
 
 Classy Scroll works perfectly with utility classes. You set the "Start" utility classes in your HTML, and pass the "End" utility classes to the library.
 ```html
-<!-- 1. HTML (Start State: opacity-0, translate-y-8) -->  
 <div class="opacity-0 translate-y-8 transition-all duration-700 animated-element">  
   I fade in with Tailwind!  
 </div>
 
-<!-- 2. JS -->  
-<script type="module">  
+<script>  
   import { classyScroll } from 'classy-scroll';
 
   classyScroll('.animated-element', {  
