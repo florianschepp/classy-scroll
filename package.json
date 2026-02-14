@@ -1,7 +1,7 @@
 {
     "name": "classy-scroll",
-    "version": "1.0.1",
-    "description": "A lightweight library to toggle CSS classes when elements scroll into view. Supports React and Vanilla JS.",
+    "version": "1.0.2",
+    "description": "A lightweight, performance-first library for scroll-based class toggling. Built with IntersectionObserver, MutationObserver and TypeScript.",
     "packageManager": "pnpm@10.25.0",
     "type": "module",
     "main": "./dist/classy-scroll.umd.cjs",
@@ -12,11 +12,12 @@
         "scroll",
         "animation",
         "typescript",
-        "react",
-        "hook",
         "intersection-observer",
+        "mutation-observer",
         "css-classes",
-        "viewport"
+        "viewport",
+        "performance",
+        "framework-agnostic"
     ],
     "repository": {
         "type": "git",

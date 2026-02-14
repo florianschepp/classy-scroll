@@ -1,6 +1,6 @@
 # **Classy Scroll 🎩✨**
 
-A lightweight, **performance-first** library for scroll-based class toggling. Built with IntersectionObserver and TypeScript.
+A lightweight, performance-first library for scroll-based class toggling. Built with IntersectionObserver, MutationObserver and TypeScript.
 
 ## **💡 The Philosophy**
 
