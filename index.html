@@ -5,99 +5,789 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Classy Scroll Demo</title>
   <style>
+    :root {
+      --primary: #6366f1;
+      --secondary: #ec4899;
+      --accent: #14b8a6;
+      --dark: #1e293b;
+      --light: #f8fafc;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       font-family: system-ui, -apple-system, sans-serif;
       margin: 0;
       padding: 0;
-      min-height: 200vh;
+      background: var(--light);
+      color: var(--dark);
+      line-height: 1.6;
     }
-    .spacer {
+
+    .hero {
       height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: #f0f0f0;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
     }
-    .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
-    .box {
-      background: white;
-      padding: 2rem;
-      margin: 1rem 0;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 8vw, 5rem);
+      margin: 0;
       opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 0.5s ease, transform 0.5s ease;
+      transform: translateY(30px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
     }
-    .box.visible {
+
+    .hero h1.visible {
       opacity: 1;
       transform: translateY(0);
     }
-    .stagger-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1rem;
-      margin-top: 2rem;
-    }
-    .card {
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+    .hero p {
+      font-size: 1.25rem;
       opacity: 0;
-      transform: scale(0.9);
-      transition: opacity 0.5s ease, transform 0.5s ease;
+      transform: translateY(20px);
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s;
     }
-    .card.pop-in {
+
+    .hero p.visible {
+      opacity: 0.9;
+      transform: translateY(0);
+    }
+
+    .scroll-indicator {
+      position: absolute;
+      bottom: 2rem;
+      opacity: 0;
+      animation: bounce 2s infinite;
+      transition: opacity 0.5s 0.5s;
+    }
+
+    .scroll-indicator.visible {
+      opacity: 1;
+    }
+
+    @keyframes bounce {
+      0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-10px); }
+      60% { transform: translateY(-5px); }
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 4rem 2rem;
+    }
+
+    .section-title {
+      font-size: 2rem;
+      text-align: center;
+      margin-bottom: 3rem;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.6s ease-out;
+    }
+
+    .section-title.fade-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .scale-section {
+      background: var(--dark);
+      color: white;
+      padding: 6rem 0;
+    }
+
+    .scale-section .section-title {
+      color: white;
+    }
+
+    .scale-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .scale-card {
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      opacity: 0;
+      transform: scale(0.8);
+      transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .scale-card.pop-in {
       opacity: 1;
       transform: scale(1);
+    }
+
+    .scale-card .icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .slide-section {
+      padding: 6rem 0;
+      overflow: hidden;
+    }
+
+    .slide-row {
+      display: flex;
+      gap: 2rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .slide-left {
+      flex: 1;
+      min-width: 300px;
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      opacity: 0;
+      transform: translateX(-60px);
+      transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .slide-left.slide-in {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .slide-right {
+      flex: 1;
+      min-width: 300px;
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      opacity: 0;
+      transform: translateX(60px);
+      transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .slide-right.slide-in {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .blur-section {
+      padding: 6rem 0;
+      background: #f1f5f9;
+    }
+
+    .blur-content {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+
+    .blur-text {
+      font-size: 1.25rem;
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      filter: blur(10px);
+      transform: translateY(20px);
+      transition: all 0.8s ease-out;
+    }
+
+    .blur-text.reveal {
+      opacity: 1;
+      filter: blur(0);
+      transform: translateY(0);
+    }
+
+    .timeline-section {
+      padding: 6rem 0;
+    }
+
+    .timeline {
+      position: relative;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 100%;
+      background: var(--primary);
+      opacity: 0.3;
+    }
+
+    .timeline-item {
+      position: relative;
+      padding: 1.5rem 0;
+      padding-left: calc(50% + 2rem);
+      opacity: 0;
+      transform: translateX(30px);
+      transition: all 0.6s ease-out;
+    }
+
+    .timeline-item:nth-child(even) {
+      padding-left: 0;
+      padding-right: calc(50% + 2rem);
+      text-align: right;
+      transform: translateX(-30px);
+    }
+
+    .timeline-item.slide-in {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: 50%;
+      top: 2rem;
+      transform: translateX(-50%);
+      width: 12px;
+      height: 12px;
+      background: var(--primary);
+      border-radius: 50%;
+    }
+
+    .timeline-content {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    }
+
+    .timeline-content h4 {
+      margin: 0 0 0.5rem;
+      color: var(--primary);
+    }
+
+    .timeline-content p {
+      margin: 0;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .image-section {
+      padding: 6rem 0;
+      background: #f1f5f9;
+    }
+
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+
+    .image-card {
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      aspect-ratio: 4/3;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+    }
+
+    .image-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: var(--dark);
+      transform: scaleX(1);
+      transform-origin: right;
+      transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1;
+    }
+
+    .image-card.reveal::before {
+      transform: scaleX(0);
+    }
+
+    .image-card-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .flip-section {
+      background: linear-gradient(135deg, var(--accent), #0891b2);
+      padding: 6rem 0;
+    }
+
+    .flip-section .section-title {
+      color: white;
+    }
+
+    .flip-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1.5rem;
+      perspective: 600px;
+    }
+
+    .flip-card {
+      background: white;
+      padding: 2rem 1rem;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: 600;
+      opacity: 0;
+      transform: rotateY(-90deg);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                  transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      will-change: transform, opacity;
+      backface-visibility: hidden;
+    }
+
+    .flip-card.flip-in {
+      opacity: 1;
+      transform: rotateY(0deg);
+    }
+
+    .fade-section {
+      padding: 6rem 0;
+      background: var(--light);
+    }
+
+    .fade-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 2rem;
+    }
+
+    .fade-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      opacity: 0;
+      transform: translateY(40px);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .fade-card.fade-up {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .fade-card h3 {
+      color: var(--primary);
+      margin-top: 0;
+    }
+
+    .counter-section {
+      background: var(--dark);
+      color: white;
+      padding: 6rem 0;
+      text-align: center;
+    }
+
+    .counter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+    }
+
+    .counter-item {
+      opacity: 0;
+      transform: scale(0.5);
+      transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .counter-item.pop-in {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .counter-number {
+      font-size: 3.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .counter-label {
+      font-size: 1rem;
+      opacity: 0.7;
+      margin-top: 0.5rem;
+    }
+
+    .footer {
+      background: var(--dark);
+      color: white;
+      padding: 4rem 2rem;
+      text-align: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .footer-content {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: all 0.6s ease-out;
+    }
+
+    .footer-content.fade-up {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .footer h2 {
+      margin-bottom: 1rem;
+    }
+
+    .install-commands {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .footer p {
+      margin: 0;
+      opacity: 0.7;
+      font-family: monospace;
+      font-size: 1rem;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 0.75rem 1.25rem;
+      border-radius: 8px;
+      transition: opacity 0.2s;
+      cursor: text;
+    }
+
+    .footer p:hover {
+      opacity: 1;
+    }
+
+    @media (max-width: 768px) {
+      .timeline-item,
+      .timeline-item:nth-child(even) {
+        padding-left: 2rem;
+        padding-right: 0;
+        text-align: left;
+        transform: translateX(30px);
+      }
+
+      .timeline::before {
+        left: 0;
+      }
+
+      .timeline-item::before {
+        left: 0;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="spacer">
-    <h1>Scroll Down</h1>
-  </div>
-
-  <div class="container">
-    <div class="box js-scroll">Item 1</div>
-    <div class="box js-scroll">Item 2</div>
-    <div class="box js-scroll" data-swc-delay="200">Item 3 (Delay 200ms)</div>
-    
-    <div class="stagger-grid">
-      <div class="card js-stagger">Card 1</div>
-      <div class="card js-stagger">Card 2</div>
-      <div class="card js-stagger">Card 3</div>
-      <div class="card js-stagger">Card 4</div>
-      <div class="card js-stagger">Card 5</div>
-      <div class="card js-stagger">Card 6</div>
+  <section class="hero">
+    <h1 class="js-hero">Classy Scroll</h1>
+    <p class="js-hero">Elegant scroll-triggered animations</p>
+    <div class="scroll-indicator js-hero">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 5v14M19 12l-7 7-7-7"/>
+      </svg>
     </div>
-  </div>
+  </section>
 
-  <div class="spacer">
-    <p>End of content</p>
-  </div>
+  <section class="scale-section">
+    <div class="container">
+      <h2 class="section-title js-title">Staggered Pop Animation</h2>
+      <div class="scale-grid">
+        <div class="scale-card js-scale"><div class="icon">🚀</div>Fast</div>
+        <div class="scale-card js-scale"><div class="icon">🎯</div>Precise</div>
+        <div class="scale-card js-scale"><div class="icon">🎨</div>Beautiful</div>
+        <div class="scale-card js-scale"><div class="icon">📱</div>Responsive</div>
+        <div class="scale-card js-scale"><div class="icon">🔧</div>Configurable</div>
+        <div class="scale-card js-scale"><div class="icon">💡</div>Intuitive</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide-section">
+    <div class="container">
+      <h2 class="section-title js-title">Slide In Animation</h2>
+      <div class="slide-row">
+        <div class="slide-left js-slide-left">
+          <h3>From the Left</h3>
+          <p>Content slides in smoothly from the left side of the viewport, creating a dynamic reveal effect.</p>
+        </div>
+        <div class="slide-right js-slide-right">
+          <h3>From the Right</h3>
+          <p>Pair it with content from the right for a balanced, engaging layout that guides the eye.</p>
+        </div>
+      </div>
+      <div class="slide-row">
+        <div class="slide-left js-slide-left">
+          <h3>Perfect for Features</h3>
+          <p>Use this pattern to highlight key features or compare different aspects of your product.</p>
+        </div>
+        <div class="slide-right js-slide-right">
+          <h3>Or Testimonials</h3>
+          <p>"Classy Scroll made our landing page feel so much more alive!" - Happy Developer</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="blur-section">
+    <div class="container">
+      <h2 class="section-title js-title">Blur Reveal Effect</h2>
+      <div class="blur-content">
+        <p class="blur-text js-blur">
+          Sometimes you want to create a sense of focus and clarity as content enters the viewport.
+        </p>
+        <p class="blur-text js-blur">
+          The blur reveal effect does exactly that - starting blurred and gradually coming into sharp focus.
+        </p>
+        <p class="blur-text js-blur">
+          It's perfect for important text that you want users to really pay attention to.
+        </p>
+        <p class="blur-text js-blur">
+          Combined with staggering, it creates a beautiful reading experience.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="timeline-section">
+    <div class="container">
+      <h2 class="section-title js-title">Timeline Animation</h2>
+      <div class="timeline">
+        <div class="timeline-item js-timeline">
+          <div class="timeline-content">
+            <h4>Initialize</h4>
+            <p>Import and call classyScroll with your selector</p>
+          </div>
+        </div>
+        <div class="timeline-item js-timeline">
+          <div class="timeline-content">
+            <h4>Configure</h4>
+            <p>Set your preferred options and thresholds</p>
+          </div>
+        </div>
+        <div class="timeline-item js-timeline">
+          <div class="timeline-content">
+            <h4>Style</h4>
+            <p>Define your CSS transitions and transforms</p>
+          </div>
+        </div>
+        <div class="timeline-item js-timeline">
+          <div class="timeline-content">
+            <h4>Enjoy</h4>
+            <p>Watch your page come alive with smooth animations</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="image-section">
+    <div class="container">
+      <h2 class="section-title js-title">Curtain Reveal</h2>
+      <div class="image-grid">
+        <div class="image-card js-reveal">
+          <div class="image-card-content">Project 1</div>
+        </div>
+        <div class="image-card js-reveal">
+          <div class="image-card-content">Project 2</div>
+        </div>
+        <div class="image-card js-reveal">
+          <div class="image-card-content">Project 3</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="flip-section">
+    <div class="container">
+      <h2 class="section-title js-title">3D Flip with Staggered Animation</h2>
+      <div class="flip-grid">
+        <div class="flip-card js-flip">HTML</div>
+        <div class="flip-card js-flip">CSS</div>
+        <div class="flip-card js-flip">JavaScript</div>
+        <div class="flip-card js-flip">TypeScript</div>
+        <div class="flip-card js-flip">React</div>
+        <div class="flip-card js-flip">Vue</div>
+        <div class="flip-card js-flip">Svelte</div>
+        <div class="flip-card js-flip">Angular</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="fade-section">
+    <div class="container">
+      <h2 class="section-title js-title">Interactive Debug Mode</h2>
+      <div class="fade-grid">
+        <div class="fade-card js-fade">
+          <h3>See the Math</h3>
+          <p>Notice the right side of the screen? Our Canvas UI shows you exactly where the trigger zones are.</p>
+        </div>
+        <div class="fade-card js-fade">
+          <h3>Entry & Exit</h3>
+          <p>Scroll up and down! Watch the blue line (Element) hit the green line (Entry) and the red line (Exit).</p>
+        </div>
+        <div class="fade-card js-fade">
+          <h3>Custom Margins</h3>
+          <p>This row is set to <code>rootMargin: '-10% 0px -15% 0px'</code>, which pushes the green/red trigger lines inward.</p>
+        </div>
+        <div class="fade-card js-fade">
+          <h3>Lightweight</h3>
+          <p>The debug UI uses Canvas 2D, meaning zero DOM clutter and buttery smooth 60fps tracking.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="counter-section">
+    <div class="container">
+      <h2 class="section-title js-title" style="color: white;">By the Numbers</h2>
+      <div class="counter-grid">
+        <div class="counter-item js-counter">
+          <div class="counter-number">&lt;3kb</div>
+          <div class="counter-label">Gzipped</div>
+        </div>
+        <div class="counter-item js-counter">
+          <div class="counter-number">0</div>
+          <div class="counter-label">Dependencies</div>
+        </div>
+        <div class="counter-item js-counter">
+          <div class="counter-number">100%</div>
+          <div class="counter-label">TypeScript</div>
+        </div>
+        <div class="counter-item js-counter">
+          <div class="counter-number">Any</div>
+          <div class="counter-label">Framework</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-content js-footer">
+      <h2>Ready to Get Started?</h2>
+      <div class="install-commands">
+        <p>npm install classy-scroll</p>
+        <p>bun add classy-scroll</p>
+        <p>pnpm add classy-scroll</p>
+        <p>yarn add classy-scroll</p>
+      </div>
+    </div>
+  </footer>
 
   <script type="module">
     import { classyScroll } from './src/index.ts';
 
-    // Basic usage
-    classyScroll('.js-scroll', {
+    // Hero animations (instant on load, persist forever)
+    classyScroll('.js-hero', {
       class: 'visible',
-      threshold: 0.2,
-      debug: true
+      threshold: 0,
+      stagger: 200,
+      persistent: true
     });
 
-    // Staggered grid
-    classyScroll('.js-stagger', {
+    // Section titles (toggle on and off as you scroll up and down)
+    classyScroll('.js-title', {
+      class: 'fade-in',
+      threshold: 0.5,
+      persistent: false
+    });
+
+    // Scale pop (toggle infinitely)
+    classyScroll('.js-scale', {
       class: 'pop-in',
-      threshold: 0.1,
+      threshold: 0.3,
+      stagger: 80,
+      persistent: false
+    });
+
+    // Slide left (toggle infinitely)
+    classyScroll('.js-slide-left', {
+      class: 'slide-in',
+      threshold: 0.3,
+      persistent: false
+    });
+
+    // Slide right (toggle infinitely)
+    classyScroll('.js-slide-right', {
+      class: 'slide-in',
+      threshold: 0.3,
+      delay: 150,
+      persistent: false
+    });
+
+    // Blur reveal (toggle infinitely)
+    classyScroll('.js-blur', {
+      class: 'reveal',
+      threshold: 0.5,
+      stagger: 150,
+      persistent: false
+    });
+
+    // Timeline slide (persists once revealed!)
+    classyScroll('.js-timeline', {
+      class: 'slide-in',
+      threshold: 0.3,
+      stagger: 200,
+      persistent: true 
+    });
+
+    // Image reveal (persists once revealed!)
+    classyScroll('.js-reveal', {
+      class: 'reveal',
+      threshold: 0.3,
+      stagger: 150,
+      persistent: true 
+    });
+
+    // 3D Flip (Staggered, persists once flipped)
+    classyScroll('.js-flip', {
+      class: 'flip-in',
+      threshold: 0.2,
+      stagger: 150,
+      persistent: true 
+    });
+
+    // 🐛 DEBUG SHOWCASE: Fade up cards with stagger + debug mode enabled!
+    // Since persistent is false, scroll up and down to see the exact Entry and Exit zones.
+    classyScroll('.js-fade', {
+        class: 'fade-up',
+        threshold: 0.2, // Triggers when 20% of the element is visible
+        rootMargin: '-10% 0px -15% 0px', // Shrinks the trigger zone by 10% top, 15% bottom
+        stagger: 100,
+        persistent: false,
+        debug: true,
+    });
+
+    classyScroll('.js-counter', {
+      class: 'pop-in',
+      threshold: 0.5,
       stagger: 100,
-      once: true
+      persistent: false
+    });
+
+    classyScroll('.js-footer', {
+      class: 'fade-up',
+      threshold: 0.5,
+      persistent: false
     });
   </script>
 </body>

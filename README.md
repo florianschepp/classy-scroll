@@ -1,6 +1,6 @@
 # **Classy Scroll 🎩✨**
 
-A lightweight, performance-first library for scroll-based class toggling. Built with IntersectionObserver, MutationObserver and TypeScript.
+A lightweight, performance-first library for scroll-based class toggling. Built with the IntersectionObserver API and TypeScript.
 
 ## **💡 The Philosophy**
 
@@ -10,6 +10,8 @@ We believe in **Separation of Concerns**.
 * **CSS** handles the *animation* (what happens).
 
 This library does not include physics engines, timelines, or parallax math. It does one thing efficiently: **it toggles a class when an element enters the viewport.**
+
+By default, classes are **persistent** and stay forever once added (perfect for reveal animations). Set `persistent: false` for bidirectional toggling (useful for progress indicators, nav highlights, etc.).
 
 ### **When to use Classy Scroll?**
 
@@ -21,6 +23,8 @@ This library does not include physics engines, timelines, or parallax math. It d
 | **Total Creative Freedom** (Any CSS class toggle) | **Classy Scroll** 🎩 |
 
 **Classy Scroll is designed for the 90% use case:** You want to trigger CSS transitions as you scroll, and you want it to be fast, accessible, and lightweight.
+
+**Ghost Element Architecture:** v2.0 introduces "Ghost Elements." The library creates invisible clones of your targets to track intersections. This ensures that your CSS transforms (like `translateY(100px)`) never interfere with the scroll trigger math.
 
 **Future-Proof Architecture:** By strictly delegating animation logic to CSS, this library is inherently forward-compatible. As browsers adopt new CSS features (like discrete property transitions), your animations gain those powers immediately without needing library updates.
 
@@ -82,23 +86,23 @@ Classy Scroll works perfectly with utility classes. You set the "Start" utility 
 
 For TypeScript users, here is the complete interface definition showing all available options and their types.
 ```typescript
-export interface classyScrollOptions {  
-  /** Space-separated classes to add when element is in view. Default: 'is-visible' */  
-  class?: string;  
-  /** Visibility threshold (0.0 to 1.0). Default: 0.1 */  
-  threshold?: number | number[];  
-  /** Margin around the root element (e.g. "10px 0px"). Default: '0px' */  
-  rootMargin?: string;  
-  /** If true, the class is added once and never removed. Default: false */  
-  once?: boolean;  
-  /** Delay in ms between elements in the same batch. Default: 0 */  
-  stagger?: number;  
-  /** Global delay in ms before animation starts. Default: 0 */  
-  delay?: number;  
-  /** Enable debug overlay to visualize trigger zones. Default: false */  
-  debug?: boolean;  
-  /** Callback fired when element intersects. */  
-  callback?: (element: HTMLElement) => void;  
+export interface ClassyScrollOptions {
+  /** Space-separated classes to add when element is in view. Default: 'is-visible' */
+  class?: string;
+  /** Fraction of the element (0.0–1.0) that must be visible to trigger. Default: 0.1 */
+  threshold?: number;
+  /** Margin around the root element (e.g. "10px 0px"). Default: '0px' */
+  rootMargin?: string;
+  /** If true, the class stays after being added. If false, the class toggles on/off. Default: true */
+  persistent?: boolean;
+  /** Delay in ms between elements in the same batch. Default: 0 */
+  stagger?: number;
+  /** Global delay in ms before animation starts. Default: 0 */
+  delay?: number;
+  /** Enable debug overlay to visualize trigger zones. Default: false */
+  debug?: boolean;
+  /** Callback fired when element intersects. */
+  callback?: (element: HTMLElement) => void;
 }
 ```
 #### **Example Instantiation:**
@@ -109,7 +113,7 @@ classyScroll('.animated-element', {
   class: 'my-active-class',  
   threshold: 0.5,   
   rootMargin: '-50px 0px',   
-  once: true,  
+  persistent: true,  
   stagger: 100,  
   debug: true,  
   callback: (element) => console.log('Animated:', element)  
@@ -122,7 +126,7 @@ classyScroll('.animated-element', {
 **Arguments:**
 
 * targets: string (selector), NodeList, HTMLElement[], or single HTMLElement.  
-  * *Note: If you pass a selector string (e.g. ".card"), the library will automatically enable **MutationObserver** to watch for new elements matching that selector.*  
+  * *Note: Unlike v1.x, the library no longer uses MutationObserver to watch for new elements. For dynamic content, re-initialize the library or use framework lifecycle hooks.*
 * options: Configuration object (optional).
 
 ### **HTML Data Attributes**
@@ -140,22 +144,34 @@ You can override global settings on a per-element basis.
 
 ## **🕵️ Debug Mode**
 
-Debugging scroll interactions is usually painful. Enable debug: true to visualize exactly where your trigger zones are.
+Debugging scroll interactions is usually painful. Enable `debug: true` to visualize exactly where your trigger zones are.
+
 ```typescript
 classyScroll('.box', {  
   debug: true,  
-  rootMargin: '-20% 0px' // Trigger line moves 20% up from bottom  
+  rootMargin: '-20% 0px', // Trigger line moves 20% up from bottom
+  threshold: 0.5
 });
 ```
-* **Green Line:** Start Trigger (Bottom).  
-* **Red Line:** End Trigger (Top).  
-* **Blue Markers:** Top/Bottom boundaries of your elements.
+
+### **What You'll See:**
+Our high-performance Canvas 2D overlay paints your scroll math in real-time without cluttering the DOM:
+
+* **Dashed Lines (Viewport Margins):**
+  * **Red Dashed Line:** Your Top `rootMargin` boundary (Exit zone).
+  * **Green Dashed Line:** Your Bottom `rootMargin` boundary (Entry zone).
+* **Solid Tracking Lines (Element Thresholds):**
+  * **Blue Line (En):** Tracks the exact pixel where the element **Enters** (based on your `threshold` %).
+  * **Blue Line (Ex):** Tracks the exact pixel where the element **Exits** (only active when `persistent: false`).
+* **Dynamic Labels:** Right-aligned badges (e.g., `[.js-fade] Entry: -10% 0px`) linking the specific threshold to its target element.
+
+**How to use it:** Simply scroll and watch the solid Element lines (Blue) collide with the dashed Viewport lines (Red/Green). The moment they touch, your CSS classes swap!
 
 ## **🧩 Framework Examples**
 
 ### **React / Next.js (Dynamic Content)**
 
-Because classyScroll uses a MutationObserver when you pass a string selector, it automatically detects new elements added to the DOM (e.g., loading a list).
+Since v2.0, the library no longer uses a global `MutationObserver`. For dynamic lists, initialize the library inside a `useEffect` and include your data in the dependency array. This ensures new items are registered and old "ghost" elements are cleaned up correctly.
 ```tsx
 import { useState, useEffect } from 'react';  
 import { classyScroll } from 'classy-scroll';
@@ -164,13 +180,13 @@ export const DynamicList = () => {
   const [items, setItems] = useState([1, 2, 3]);
 
   useEffect(() => {  
-    // We pass a string selector, so it watches for new .animated-element nodes automatically  
+    // Re-initialize when items change to account for new DOM nodes
     const { destroy } = classyScroll('.animated-element', {   
         stagger: 100,  
-        once: true   
+        persistent: true   
     });  
     return () => destroy();  
-  }, []);
+  }, [items]); // The "items" dependency replaces the old MutationObserver logic
 
   return (  
     <div>  
@@ -207,6 +223,28 @@ onUnmounted(() => {
 });  
 </script>
 ```
+## **🚀 Migration Guide (v1.x → v2.0)**
+
+### **Breaking Changes**
+
+1. **MutationObserver Removed:** The library no longer automatically watches the DOM. You must call `classyScroll` when new elements are added or use framework lifecycle hooks (like `useEffect` or `onMounted`).
+2. **`once` renamed to `persistent`:** The default is now `true`.
+3. **Threshold Narrowing:** The `threshold` option now strictly accepts a single `number` (0.0 to 1.0). Arrays are no longer supported to ensure Ghost Element stability.
+
+**v1.x (Old):**
+```typescript
+classyScroll('.element', { once: true });  // Class added once
+classyScroll('.element', { once: false }); // Class toggles
+classyScroll('.element', { threshold: [0, 0.5, 1] }); // Array allowed
+```
+
+**v2.x (New):**
+```typescript
+classyScroll('.element', { persistent: true });  // Class persists (default)
+classyScroll('.element', { persistent: false }); // Class toggles
+classyScroll('.element', { threshold: 0.5 }); // Must be a single number
+```
+
 ## **License**
 
 MIT © 2026

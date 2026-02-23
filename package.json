@@ -1,7 +1,7 @@
 {
     "name": "classy-scroll",
-    "version": "1.0.2",
-    "description": "A lightweight, performance-first library for scroll-based class toggling. Built with IntersectionObserver, MutationObserver and TypeScript.",
+    "version": "2.0.0",
+    "description": "A lightweight, performance-first library for scroll-based class toggling. Built with the IntersectionObserver API and TypeScript.",
     "packageManager": "pnpm@10.25.0",
     "type": "module",
     "main": "./dist/classy-scroll.umd.cjs",
