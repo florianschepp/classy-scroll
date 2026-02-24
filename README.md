@@ -1,5 +1,7 @@
 # **Classy Scroll 🎩✨**
 
+https://github.com/user-attachments/assets/4d966fae-ded3-481e-ab40-85baf1e796fa
+
 A lightweight, performance-first library for scroll-based class toggling. Built with the IntersectionObserver API and TypeScript.
 
 ## **💡 The Philosophy**
